@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        .overlay{
+            position: absolute;
+            width:100vw;
+            height: 100vh;
+            background-color: rgb(255, 255, 255);
+            opacity: 0.7;
+            z-index: 99;
+            display: none;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar img {
+            border-radius: 50%;
+            display: block;
+            margin: 20px auto 10px;
+        }
+        .sidebar h2, .sidebar button {
+            text-align: center;
+            color: #333;
+        }
+        .sidebar .top-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sidebar .bottom-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            height: 100px;
+        }
+        .sidebar button.logout {
+            background-color: #dc3545;
+            text-align: center;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        .sidebar button.toggle-theme {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .header h1 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        .header .actions {
+            display: flex;
+            align-items: center;
+        }
+        .header .add-driver {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 20px;
+        }
+        .search-bar {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding-left: 40px;
+        }
+        .search-bar .icon {
+            position: absolute;
+            left: 10px;
+        }
+        .search-bar .icon img {
+            width: 20px;
+            height: 20px;
+        }
+        .search-bar .icons-right {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            right: 10px;
+        }
+        .icons-right img {
+            width: 20px;
+            height: auto;
+        }
+        .driver-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .driver-table th, .driver-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .driver-table th {
+            background-color: #f9f9f9;
+        }
+        .actions button {
+            padding: 10px 15px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 2px;
+        }
+        .actions .accept {
+            background-color: #007bff;
+        }
+        .actions .delete {
+            background-color: #dc3545;
+        }
+        .driver-table .selected {
+            background-color: #e0f7fa;
+        }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        body.dark-mode .sidebar {
+            background-color: #444;
+            border-color: #555;
+        }
+        body.dark-mode .header {
+            background-color: #444;
+            border-color: #555;
+        }
+        body.dark-mode .driver-table {
+            background-color: #444;
+        }
+        body.dark-mode .driver-table th {
+            background-color: #555;
+        }
+        body.dark-mode .driver-table td {
+            border-color: #555;
+        }
+        body.dark-mode .search-bar input {
+            background-color: #555;
+            color: #fff;
+            border-color: #666;
+        }
+        body.dark-mode .header .add-driver {
+            background-color: #007bff;
+        }
+        body.dark-mode .actions .accept {
+            background-color: #007bff;
+        }
+        body.dark-mode .actions .delete {
+            background-color: #dc3545;
+        }
+        body.dark-mode .driver-table .selected {
+            background-color: #616161;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .form-container {
+            display: none;
+            z-index: 100;
+            position: absolute;
+            top:10%;
+            left:30%;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-group input[type="file"] {
+            padding: 3px;
+        }
+        .form-group input:focus {
+            border-color: #007bff;
+        }
+        .form-button {
+            text-align: center;
+        }
+        .form-button button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .form-button button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 50px;
+            background-color: white;
+            color: rgb(223, 0, 0);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        
+
+        .icon-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .icon-container img {
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the icon */
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%; /* Arrow will be at the bottom of the tooltip */
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .icon-container:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay">
+    </div>
+    <div class="sidebar">
+        <div class="top-section">
+            <img src="profile_pic.png" alt="User Avatar" width="80">
+            <h2>Kontrolni panel</h2>
+            <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
+        </div>
+        
+        <div class="bottom-section">
+            <button class="logout" id="logout" onclick="logout()">Odjavi se</button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h1>Registracije</h1>
+            <div class="actions">
+                <button class="add-driver" onclick="dodajVozaca()">Dodaj novog vozaca</button>
+            </div>
+        </div>
+        <div class="search-bar">
+            <div class="icon"><img src="search_icon.png" alt="Search Icon"></div>
+            <input type="text" placeholder="Pretrazi prijavljene korisnike" style="width:30%">
+            <div class="icons-right">
+                <div class="icon-container">
+                    <img src="plus_icon.png" alt="Plus Icon" id="dodajSve" onclick="dodajSve()">
+                    <span class="tooltip">Dodaj sve</span>
+                </div>
+                <div class="icon-container">
+                    <img src="trash_icon.png" alt="Trash Icon" id="obrisiSve" onclick="obrisiSve()">
+                    <span class="tooltip">Obriši sve</span>
+                </div>
+            </div>
+        </div>
+        <table class="driver-table" id="driver-list">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Ime</th>
+                    <th>Prezime</th>
+                    <th>Model auta</th>
+                    <th>Email</th>
+                    <th>Lozinka</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-container" id="formaZaDodavanje">
+        <span class="close-icon" onclick="closeForm()">×</span>
+        <h2>Dodaj Novog Vozača</h2>
+        <form id="driverForm" action="/drivers" method="POST">
+            <div class="form-group">
+                <label for="first_name">Ime</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Prezime</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="car_model">Model Auta</label>
+                <input type="text" id="car_model" name="car_model" required>
+            </div>
+            <div class="form-group">
+                <label for="bank_acc">Broj Bankovnog Računa</label>
+                <input type="text" id="bank_acc" name="bank_acc" required>
+            </div>
+            <div class="form-group">
+                <label for="plate_number">Registarski Broj</label>
+                <input type="text" id="plate_number" name="plate_number" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Šifra</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-button">
+                <button type="submit">Dodaj</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    <div id="error-message" class="error-message">An error occurred!</div>
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.row-select');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                toggleRowSelection(checkbox.closest('tr'), this.checked);
+            });
+        });
+
+        document.querySelectorAll('.row-select').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                toggleRowSelection(this.closest('tr'), this.checked);
+            });
+        });
+
+        function toggleRowSelection(row, isSelected) {
+            if (isSelected) {
+                row.classList.add('selected');
+            } else {
+                row.classList.remove('selected');
+            }
+        }
+
+        // Fetch data from the server and load it into the table
+        async function fetchData() {
+            try {
+                const response = await fetch('/drivers');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                let jsonString = JSON.stringify(data);
+                localStorage.setItem("registrations", jsonString);
+                loadTableData(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        function loadTableData(data) {
+            const tableBody = document.getElementById('driver-list');
+
+            data.forEach(driver => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="row-select"></td>
+                    <td>${driver.first_name}</td>
+                    <td>${driver.last_name}</td>
+                    <td>${driver.car_model}</td>
+                    <td>${driver.email}</td>
+                    <td>${driver.password}</td>
+                    <td class="actions">
+                        <button class="accept" onclick="prihvatiPrijavu(event)">Prihvati prijavu</button>
+                        <button class="delete" onclick="otkaziPrijavu(event)">Odbij prijavu</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function dodajVozaca() {
+            const formaZaDodavanje = document.getElementById("formaZaDodavanje");
+            const overlay = document.getElementById("overlay");
+            formaZaDodavanje.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeForm(){
+            const formaZaDodavanje = document.getElementById("formaZaDodavanje");
+            const overlay = document.getElementById("overlay");
+            formaZaDodavanje.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        function pronadjiPrijavu(email) {
+            let JSONstringData = localStorage.getItem("registrations");
+            let data = JSON.parse(JSONstringData);
+            for(let i = 0; i < data.length; i++) {
+                if(data[i].email == email){
+                    return data[i];
+                }
+            }
+            return null;
+        }
+
+
+        function prihvatiSvePrijave(checkbox) {
+            const row = checkbox.closest('tr'); // Get the closest parent <tr> element
+            const email = row.querySelector('td:nth-child(5)').textContent.trim(); // Get the email from the fifth <td> element (index 4)
+            const dataToSend = {
+                email:email
+            };
+            if(email){
+                //fetch
+                fetch('/drivers', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Assuming response is JSON; adjust as per your API
+            })
+            .then(data => {
+               row.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors, show error messages, etc.
+                showError(error);
+            });
+            }
+            //pronadji ga u localStorage-u
+            // Perform other actions with the email variable as needed
+        }
+
+
+        function prihvatiPrijavu(event) {
+            const row = event.target.closest('tr'); // Get the closest parent <tr> element
+            const email = row.querySelector('td:nth-child(5)').textContent.trim(); // Get the email from the fifth <td> element (index 4)
+            const dataToSend = {
+                email:email
+            };
+            if(email){
+                //fetch
+                fetch('/drivers', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Assuming response is JSON; adjust as per your API
+            })
+            .then(data => {
+               row.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors, show error messages, etc.
+                showError(error);
+            });
+            }
+            //pronadji ga u localStorage-u
+            // Perform other actions with the email variable as needed
+        }
+        function otkaziSvePrijave(checkbox) {
+            const row = checkbox.closest('tr'); // Get the closest parent <tr> element
+            const email = row.querySelector('td:nth-child(5)').textContent.trim(); // Get the email from the fifth <td> element (index 4)
+                const dataToSend = {
+                email:email
+            };
+            if(email){
+                //fetch
+                fetch('/drivers', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Assuming response is JSON; adjust as per your API
+            })
+            .then(data => {
+               row.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors, show error messages, etc.
+                showError(error)
+            });
+            }
+        }
+        function otkaziPrijavu(event) {
+            const row = event.target.closest('tr'); // Get the closest parent <tr> element
+            const email = row.querySelector('td:nth-child(5)').textContent.trim(); // Get the email from the fifth <td> element (index 4)
+                const dataToSend = {
+                email:email
+            };
+            if(email){
+                //fetch
+                fetch('/drivers', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Assuming response is JSON; adjust as per your API
+            })
+            .then(data => {
+               row.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors, show error messages, etc.
+                showError(error)
+            });
+            }
+        }
+
+        function showError(message) {
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'flex';
+            setTimeout(() => {
+                errorMessageDiv.style.display = 'none';
+            }, 1500);
+        }
+
+
+        document.getElementById('driverForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Gather form data
+            const formData = new FormData(event.target);
+            const formEntries = Object.fromEntries(formData.entries());
+            const jsonData = JSON.stringify(formEntries);
+
+            console.log('Form Data:', formEntries);
+
+            // Submit form using fetch API with JSON data
+            fetch('/drivers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+        
+        
+        function logout() {
+            fetch('/logout', {
+                method:'DELETE'
+            })
+            .then(response=> {
+                window.location.href = response.url;
+            })
+            .catch((err) => {
+                showError(err);
+            })
+        }
+
+
+        function dodajSve(){
+            const checkboxes = document.getElementsByClassName('row-select');
+            let flag = false;
+            for(let i = 0; i < checkboxes.length; i++) {
+                if(checkboxes[i].checked) {
+                    console.log(checkboxes[i]);
+                    prihvatiSvePrijave(checkboxes[i]);
+                    flag = true;
+                }
+            }
+
+            if(!flag) {
+                showError("Niste izabrali nijednu prijavu");
+            }
+        }
+
+        function obrisiSve(){
+            const checkboxes = document.getElementsByClassName('row-select');
+            let flag = false;
+            for(let i = 0; i < checkboxes.length; i++) {
+                if(checkboxes[i].checked) {
+                    console.log(checkboxes[i]);
+                    otkaziSvePrijave(checkboxes[i]);
+                    flag = true;
+                }
+            }
+
+            if(!flag) {
+                showError("Niste izabrali nijednu prijavu");
+            }
+        }
+
+        // Call fetchData when the page loads
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>
